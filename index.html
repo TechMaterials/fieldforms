@@ -8,10 +8,14 @@
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#111;color:#eee;font-size:17px}
-header{background:#000;border-bottom:3px solid #c9a227;padding:14px 16px}
-h1{margin:0;font-size:16px;letter-spacing:1px;color:#c9a227;text-transform:uppercase}
+header{background:#000;border-bottom:3px solid #c9a227;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+h1{margin:0;font-size:16px;letter-spacing:1px;color:#c9a227;text-transform:uppercase;flex:1;min-width:0}
+.gear{flex:0 0 auto;background:none;border:0;padding:7px;line-height:0;border-radius:8px}
+.gear svg{width:26px;height:26px;display:block;fill:#c9a227}
+.gear.on{background:#c9a227}
+.gear.on svg{fill:#000}
 .tabs{display:flex;background:#1b1b1b;position:sticky;top:0;z-index:5}
-.tabs button{flex:1;padding:14px 4px;background:none;border:0;color:#888;font-size:13px;font-weight:700;border-bottom:3px solid transparent}
+.tabs button{flex:1;padding:14px 4px;background:none;border:0;color:#888;font-size:14px;font-weight:700;border-bottom:3px solid transparent}
 .tabs button.on{color:#fff;border-bottom-color:#c9a227}
 .wrap{padding:16px;max-width:820px;margin:0 auto}
 label{display:block;font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:#c9a227;margin:16px 0 6px;font-weight:700}
@@ -26,10 +30,15 @@ canvas.sig{width:100%;height:190px;background:#fff;border-radius:8px;border:1px 
 .sigbar{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
 .sigbar span{font-size:12px;color:#777}
 .link{background:none;border:0;color:#c9a227;font-size:14px;text-decoration:underline;padding:4px}
-.mat{border:1px solid #333;border-radius:10px;padding:12px;margin-top:10px;background:#181818}
-.mat .row{display:flex;gap:8px}
-.mat .row>div{flex:1}
-.mat .head{display:flex;justify-content:space-between;color:#777;font-size:12px;margin-bottom:6px}
+.mat,.seg{border:1px solid #333;border-radius:10px;padding:12px;margin-top:10px;background:#181818}
+.mat .row,.seg .row{display:flex;gap:8px}
+.mat .row>div,.seg .row>div{flex:1}
+.mat .head,.seg .head{display:flex;justify-content:space-between;color:#777;font-size:12px;margin-bottom:6px}
+.seg input{margin-top:8px}
+.seg .cap{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#777;margin-top:10px;font-weight:700}
+.flag{margin-top:10px;font-size:13px;font-weight:700;padding:9px 11px;border-radius:6px;line-height:1.4;display:none}
+.flag.ok{display:block;background:#14251a;border:1px solid #3c6b47;color:#cfe8d6}
+.flag.no{display:block;background:#2a1a12;border:1px solid #7a4a28;color:#f0cbb0}
 .big{width:100%;padding:16px;border:0;border-radius:10px;background:#c9a227;color:#000;font-weight:800;font-size:17px;margin-top:22px;letter-spacing:.5px}
 .ghost{background:#1e1e1e;color:#c9a227;border:1px solid #c9a227}
 .tot{margin-top:14px;padding:12px;background:#1b1b1b;border-radius:8px;display:flex;justify-content:space-between;font-weight:800}
@@ -46,17 +55,39 @@ footer{padding:24px 16px 50px;text-align:center;color:#555;font-size:12px}
 .saved.show{opacity:1}
 </style>
 </head>
-<body class="">
-<header><h1>Field Forms: One Aim ~ One Fix ~ One Solution</h1></header>
+<body>
+<header>
+  <h1>Field Forms: One Aim ~ One Fix ~ One Solution</h1>
+  <button class="gear" id="tgear" onclick="tab('pset')" aria-label="Setup">
+    <svg viewBox="0 0 24 24"><path d="M19.4 13a7.8 7.8 0 0 0 0-2l2-1.6a.5.5 0 0 0 .1-.6l-1.9-3.3a.5.5 0 0 0-.6-.2l-2.4 1a7.6 7.6 0 0 0-1.7-1l-.4-2.5a.5.5 0 0 0-.5-.4h-3.8a.5.5 0 0 0-.5.4l-.4 2.5a7.6 7.6 0 0 0-1.7 1l-2.4-1a.5.5 0 0 0-.6.2L2.5 8.8a.5.5 0 0 0 .1.6L4.6 11a7.8 7.8 0 0 0 0 2l-2 1.6a.5.5 0 0 0-.1.6l1.9 3.3a.5.5 0 0 0 .6.2l2.4-1a7.6 7.6 0 0 0 1.7 1l.4 2.5a.5.5 0 0 0 .5.4h3.8a.5.5 0 0 0 .5-.4l.4-2.5a7.6 7.6 0 0 0 1.7-1l2.4 1a.5.5 0 0 0 .6-.2l1.9-3.3a.5.5 0 0 0-.1-.6zM12 15.5A3.5 3.5 0 1 1 15.5 12 3.5 3.5 0 0 1 12 15.5z"></path></svg>
+  </button>
+</header>
 <div class="tabs">
-  <button id="t1" class="on" onclick="tab(1)">Service Completion</button>
-  <button id="t2" onclick="tab(2)" class="">Material Request</button>
-  <button id="t3" onclick="tab(3)" class="">Setup</button>
+  <button data-panel="p1" onclick="tab('p1')">Service</button>
+  <button data-panel="p2" onclick="tab('p2')">Materials</button>
+  <button data-panel="p3" onclick="tab('p3')">Drive</button>
+</div>
+
+<!-- ============ SETUP ============ -->
+<div class="wrap" id="pset" style="display:none">
+  <p class="note" style="margin-top:0">Fill this in once. It auto-fills every form from now on.</p>
+  <label>Your Name</label><input type="text" id="deftech">
+  <label>Field Director</label><input type="text" id="deffd">
+  <label>Your Phone / Email</label><input type="text" id="defcontact">
+  <label>Company Name</label><input type="text" id="defco">
+  <label>Supervisor Email (optional)</label><input type="email" id="supmail" placeholder="Only needed if you ever email a form">
+  <label>Send A Copy To</label><input type="email" id="defcopy" placeholder="Where your own copy goes - e.g. the office">
+  <button class="big" onclick="saveSetup()">Save Setup</button>
+  <button class="big ghost" onclick="tab('p1')">Done, Go To Forms</button>
+  <p class="note">
+    <b>Put it on your home screen:</b> open this page in Safari or Chrome, tap Share, then "Add to Home Screen." It opens like an app and works with no signal. Everything you type is saved on the phone until you hit send.
+  </p>
+  <p class="note">You can get back here any time with the gear icon at the top right.</p>
 </div>
 
 <!-- ============ FORM 1 ============ -->
-<div class="wrap" id="p1" style="">
-  <div class="err" id="e1" style="display: block;"><b>This phone would not open the share tray.</b><br>This browser will not share files.<br>Nothing was sent. Tap below to save the form to this phone and send it by hand, then tell the office.<button class="big ghost">Save the form to this phone</button></div>
+<div class="wrap" id="p1" style="display:none">
+  <div class="err" id="e1"></div>
   <label>Date of Service</label><input type="date" id="f1date">
   <label>Work Order #</label><input type="text" id="f1wo">
   <label>Store Name</label><input type="text" id="f1loc">
@@ -65,21 +96,21 @@ footer{padding:24px 16px 50px;text-align:center;color:#555;font-size:12px}
   <label>Description of Work Performed</label><textarea id="f1desc"></textarea>
 
   <div class="q"><p>Was the job completed in full?</p>
-    <div class="yn"><button onclick="yn(this,'q1','YES')" class="on">YES</button><button onclick="yn(this,'q1','NO')" class="">NO</button></div>
+    <div class="yn"><button onclick="yn(this,'q1','YES')">YES</button><button onclick="yn(this,'q1','NO')">NO</button></div>
     <input type="text" id="q1n" placeholder="Notes (optional)"></div>
   <div class="q"><p>Was the technician professional and courteous?</p>
-    <div class="yn"><button onclick="yn(this,'q2','YES')" class="on">YES</button><button onclick="yn(this,'q2','NO')" class="">NO</button></div>
+    <div class="yn"><button onclick="yn(this,'q2','YES')">YES</button><button onclick="yn(this,'q2','NO')">NO</button></div>
     <input type="text" id="q2n" placeholder="Notes (optional)"></div>
   <div class="q"><p>Was any property or equipment damaged?</p>
-    <div class="yn"><button onclick="yn(this,'q3','YES')" class="">YES</button><button onclick="yn(this,'q3','NO')" class="on">NO</button></div>
+    <div class="yn"><button onclick="yn(this,'q3','YES')">YES</button><button onclick="yn(this,'q3','NO')">NO</button></div>
     <input type="text" id="q3n" placeholder="Notes (optional)"></div>
 
   <label>Customer Name (Print)</label><input type="text" id="f1cust">
   <label>Customer Signature</label>
-  <canvas class="sig" id="sig1" width="990" height="564" data-ink="1"></canvas>
+  <canvas class="sig" id="sig1"></canvas>
   <div class="sigbar"><span>Hand the phone to the customer to sign.</span><button class="link" onclick="clearSig('sig1')">Clear</button></div>
 
-  <div class="hint" id="h1" style="display: none;"><b>Pick Messages</b>, then choose the supervisor for this job.</div>
+  <div class="hint" id="h1"></div>
   <button class="big" onclick="finish(1,'text')">Text to Supervisor</button>
   <div class="row2">
     <button class="big ghost" onclick="finish(1,'copy')">Send My Copy</button>
@@ -90,7 +121,7 @@ footer{padding:24px 16px 50px;text-align:center;color:#555;font-size:12px}
 </div>
 
 <!-- ============ FORM 2 ============ -->
-<div class="wrap" id="p2" style="display: none;">
+<div class="wrap" id="p2" style="display:none">
   <div class="err" id="e2"></div>
   <label>Date</label><input type="date" id="f2date">
   <label>Work Order #</label><input type="text" id="f2wo">
@@ -100,7 +131,7 @@ footer{padding:24px 16px 50px;text-align:center;color:#555;font-size:12px}
   <label>Phone / Email</label><input type="text" id="f2contact">
 
   <label>Material Request Details</label>
-  <div id="mats"><div class="mat"><div class="head"><span class="idx">Item 1</span><button class="link" onclick="var m=this.parentNode.parentNode;m.parentNode.removeChild(m);calc()">Remove</button></div><input type="text" class="m-d" placeholder="Material description"><div class="row" style="margin-top:8px"><div><input type="number" inputmode="decimal" class="m-q" placeholder="Qty"></div><div><input type="number" inputmode="decimal" class="m-u" placeholder="Unit cost"></div><div><input type="text" class="m-t" placeholder="Total" readonly=""></div></div><div class="row" style="margin-top:8px"><div><input type="text" class="m-s" placeholder="Supplier / store"></div><div><select class="m-a"><option>PENDING</option><option>APPROVED</option></select></div></div></div><div class="mat"><div class="head"><span class="idx">Item 2</span><button class="link" onclick="var m=this.parentNode.parentNode;m.parentNode.removeChild(m);calc()">Remove</button></div><input type="text" class="m-d" placeholder="Material description"><div class="row" style="margin-top:8px"><div><input type="number" inputmode="decimal" class="m-q" placeholder="Qty"></div><div><input type="number" inputmode="decimal" class="m-u" placeholder="Unit cost"></div><div><input type="text" class="m-t" placeholder="Total" readonly=""></div></div><div class="row" style="margin-top:8px"><div><input type="text" class="m-s" placeholder="Supplier / store"></div><div><select class="m-a"><option>PENDING</option><option>APPROVED</option></select></div></div></div><div class="mat"><div class="head"><span class="idx">Item 3</span><button class="link" onclick="var m=this.parentNode.parentNode;m.parentNode.removeChild(m);calc()">Remove</button></div><input type="text" class="m-d" placeholder="Material description"><div class="row" style="margin-top:8px"><div><input type="number" inputmode="decimal" class="m-q" placeholder="Qty"></div><div><input type="number" inputmode="decimal" class="m-u" placeholder="Unit cost"></div><div><input type="text" class="m-t" placeholder="Total" readonly=""></div></div><div class="row" style="margin-top:8px"><div><input type="text" class="m-s" placeholder="Supplier / store"></div><div><select class="m-a"><option>PENDING</option><option>APPROVED</option></select></div></div></div><div class="mat"><div class="head"><span class="idx">Item 4</span><button class="link" onclick="var m=this.parentNode.parentNode;m.parentNode.removeChild(m);calc()">Remove</button></div><input type="text" class="m-d" placeholder="Material description"><div class="row" style="margin-top:8px"><div><input type="number" inputmode="decimal" class="m-q" placeholder="Qty"></div><div><input type="number" inputmode="decimal" class="m-u" placeholder="Unit cost"></div><div><input type="text" class="m-t" placeholder="Total" readonly=""></div></div><div class="row" style="margin-top:8px"><div><input type="text" class="m-s" placeholder="Supplier / store"></div><div><select class="m-a"><option>PENDING</option><option>APPROVED</option></select></div></div></div><div class="mat"><div class="head"><span class="idx">Item 5</span><button class="link" onclick="var m=this.parentNode.parentNode;m.parentNode.removeChild(m);calc()">Remove</button></div><input type="text" class="m-d" placeholder="Material description"><div class="row" style="margin-top:8px"><div><input type="number" inputmode="decimal" class="m-q" placeholder="Qty"></div><div><input type="number" inputmode="decimal" class="m-u" placeholder="Unit cost"></div><div><input type="text" class="m-t" placeholder="Total" readonly=""></div></div><div class="row" style="margin-top:8px"><div><input type="text" class="m-s" placeholder="Supplier / store"></div><div><select class="m-a"><option>PENDING</option><option>APPROVED</option></select></div></div></div><div class="mat"><div class="head"><span class="idx">Item 6</span><button class="link" onclick="var m=this.parentNode.parentNode;m.parentNode.removeChild(m);calc()">Remove</button></div><input type="text" class="m-d" placeholder="Material description"><div class="row" style="margin-top:8px"><div><input type="number" inputmode="decimal" class="m-q" placeholder="Qty"></div><div><input type="number" inputmode="decimal" class="m-u" placeholder="Unit cost"></div><div><input type="text" class="m-t" placeholder="Total" readonly=""></div></div><div class="row" style="margin-top:8px"><div><input type="text" class="m-s" placeholder="Supplier / store"></div><div><select class="m-a"><option>PENDING</option><option>APPROVED</option></select></div></div></div></div>
+  <div id="mats"></div>
   <button class="big ghost" style="margin-top:10px" onclick="addMat()">+ Add Material</button>
   <div class="tot"><span>GRAND TOTAL</span><span id="grand">$0.00</span></div>
 
@@ -109,7 +140,7 @@ footer{padding:24px 16px 50px;text-align:center;color:#555;font-size:12px}
   <div class="ack">I certify that the materials listed above are required to complete the assigned work order. I understand that materials must receive prior approval before purchase. Itemized receipts must be submitted within 24 hours of purchase. Failure to follow company policy may result in reimbursement denial, disciplinary action, or other action consistent with company policy and applicable law.</div>
 
   <label>Technician Signature</label>
-  <canvas class="sig" id="sig2" width="0" height="0" data-ink=""></canvas>
+  <canvas class="sig" id="sig2"></canvas>
   <div class="sigbar"><span>Sign above to certify.</span><button class="link" onclick="clearSig('sig2')">Clear</button></div>
 
   <label>Receipt Attached</label>
@@ -125,19 +156,31 @@ footer{padding:24px 16px 50px;text-align:center;color:#555;font-size:12px}
   <p class="note">Field Director / HR approval and funds approval are handled by the supervisor after they receive this.</p>
 </div>
 
-<!-- ============ SETUP ============ -->
-<div class="wrap" id="p3" style="display: none;">
-  <p class="note" style="margin-top:0">Fill this in once. It auto-fills every form from now on.</p>
-  <label>Your Name</label><input type="text" id="deftech">
-  <label>Field Director</label><input type="text" id="deffd">
-  <label>Your Phone / Email</label><input type="text" id="defcontact">
-  <label>Company Name</label><input type="text" id="defco">
-  <label>Supervisor Email (optional)</label><input type="email" id="supmail" placeholder="Only needed if you ever email a form">
-  <label>Send A Copy To</label><input type="email" id="defcopy" placeholder="Where your own copy goes - e.g. the office">
-  <button class="big" onclick="saveSetup()">Save Setup</button>
-  <p class="note">
-    <b>Put it on your home screen:</b> open this page in Safari or Chrome, tap Share, then "Add to Home Screen." It opens like an app and works with no signal. Everything you type is saved on the phone until you hit send.
-  </p>
+<!-- ============ FORM 3 ============ -->
+<div class="wrap" id="p3" style="display:none">
+  <div class="err" id="e3"></div>
+  <label>Date</label><input type="date" id="f3date">
+  <label>Technician Name</label><input type="text" id="f3tech">
+
+  <label>Travel Segments</label>
+  <div id="segs"></div>
+  <button class="big ghost" style="margin-top:10px" onclick="addSeg()">+ Add Segment</button>
+  <div class="tot"><span>TOTAL ELIGIBLE DRIVE TIME</span><span id="drivetot">0 hr 0 min</span></div>
+
+  <div class="ack"><b>Drive time policy.</b> This form must be completed in full and submitted for drive-time compensation consideration. Drive-time pay applies only to travel segments that exceed one (1) hour from the technician's departure location, whether departing from home or a previous job site, to the next qualifying job site. Incomplete, inaccurate, or missing forms may result in drive-time compensation not being approved for the applicable travel segment.</div>
+
+  <label>Technician Signature</label>
+  <canvas class="sig" id="sig3"></canvas>
+  <div class="sigbar"><span>Sign above to certify.</span><button class="link" onclick="clearSig('sig3')">Clear</button></div>
+
+  <div class="hint" id="h3"></div>
+  <button class="big" onclick="finish(3,'text')">Text to Supervisor</button>
+  <div class="row2">
+    <button class="big ghost" onclick="finish(3,'copy')">Send My Copy</button>
+    <button class="big ghost" onclick="finish(3,'email')">Email Instead</button>
+  </div>
+  <button class="big ghost" onclick="reset(3)">Clear Form / Start Next Day</button>
+  <p class="note">Log each leg separately. A typical day is home to the first job site, then job site to home or to the next job site.</p>
 </div>
 
 <footer>No paper. No ink. No filing cabinet.</footer>
@@ -145,8 +188,15 @@ footer{padding:24px 16px 50px;text-align:center;color:#555;font-size:12px}
 
 <script>
 var S={};
+var PANELS=['p1','p2','p3','pset'];
 function $(i){return document.getElementById(i)}
-function tab(n){for(var i=1;i<=3;i++){$('p'+i).style.display=i==n?'':'none';$('t'+i).className=i==n?'on':''}window.scrollTo(0,0)}
+function tab(id){
+  PANELS.forEach(function(p){var el=$(p);if(el)el.style.display=(p==id?'':'none')});
+  var b=document.querySelectorAll('.tabs button');
+  for(var i=0;i<b.length;i++)b[i].className=(b[i].getAttribute('data-panel')==id?'on':'');
+  $('tgear').className=(id=='pset'?'gear on':'gear');
+  window.scrollTo(0,0);
+}
 function toast(m){var t=$('toast');t.textContent=m;t.className='saved show';setTimeout(function(){t.className='saved'},1800)}
 
 /* ---------- yes / no ---------- */
@@ -188,17 +238,45 @@ function calc(){
   $('grand').textContent='$'+g.toFixed(2);save();
 }
 
+/* ---------- drive time segments ---------- */
+function segMins(s){var h=parseInt(s.querySelector('.s-h').value)||0,m=parseInt(s.querySelector('.s-m').value)||0;return h*60+m}
+function hm(t){return Math.floor(t/60)+' hr '+(t%60)+' min'}
+function addSeg(j,st,f,t,h,m){
+  var el=document.createElement('div');el.className='seg';
+  el.innerHTML='<div class="head"><span class="idx"></span><button class="link" onclick="var s=this.parentNode.parentNode;s.parentNode.removeChild(s);calcSeg()">Remove</button></div>'
+   +'<div class="row"><div><input type="text" class="s-job" placeholder="Job #"></div><div><input type="text" class="s-site" placeholder="Site name"></div></div>'
+   +'<div class="cap">Leaving from (address)</div><input type="text" class="s-from" placeholder="Home, store, or previous job site">'
+   +'<div class="cap">Destination (job address)</div><input type="text" class="s-to" placeholder="Job site, next job site, or home">'
+   +'<div class="cap">Drive time</div><div class="row"><div><input type="number" inputmode="numeric" class="s-h" placeholder="Hours"></div><div><input type="number" inputmode="numeric" class="s-m" placeholder="Minutes"></div></div>'
+   +'<div class="flag"></div>';
+  $('segs').appendChild(el);
+  if(j!==undefined&&j!==null){el.querySelector('.s-job').value=j;el.querySelector('.s-site').value=st;el.querySelector('.s-from').value=f;el.querySelector('.s-to').value=t;el.querySelector('.s-h').value=h;el.querySelector('.s-m').value=m}
+  el.addEventListener('input',calcSeg);calcSeg();
+}
+function calcSeg(){
+  var n=0,elig=0;
+  document.querySelectorAll('.seg').forEach(function(s){
+    n++;s.querySelector('.idx').textContent='Segment '+n;
+    var t=segMins(s),f=s.querySelector('.flag');
+    if(!t){f.className='flag';f.textContent=''}
+    else if(t>60){f.className='flag ok';f.textContent='Over 1 hour. Eligible for drive-time pay.';elig+=t}
+    else{f.className='flag no';f.textContent='1 hour or less. Not eligible under the drive-time policy. Log it anyway for the record.'}
+  });
+  $('drivetot').textContent=hm(elig);save();
+}
+
 /* ---------- local save ---------- */
-var FIELDS=['f1date','f1wo','f1loc','f1num','f1tech','f1desc','q1n','q2n','q3n','f1cust','f2date','f2wo','f2tech','f2client','f2fd','f2contact','f2reason','supmail','deftech','deffd','defcontact','defco','defcopy'];
+var FIELDS=['f1date','f1wo','f1loc','f1num','f1tech','f1desc','q1n','q2n','q3n','f1cust','f2date','f2wo','f2tech','f2client','f2fd','f2contact','f2reason','f3date','f3tech','supmail','deftech','deffd','defcontact','defco','defcopy'];
 function save(){
-  var d={v:{},yn:S,mats:[],sig1:$('sig1').dataset.ink?$('sig1').toDataURL():'',sig2:$('sig2').dataset.ink?$('sig2').toDataURL():''};
+  var d={v:{},yn:S,mats:[],segs:[],sig1:$('sig1').dataset.ink?$('sig1').toDataURL():'',sig2:$('sig2').dataset.ink?$('sig2').toDataURL():'',sig3:$('sig3').dataset.ink?$('sig3').toDataURL():''};
   FIELDS.forEach(function(f){d.v[f]=$(f).value});
   document.querySelectorAll('.mat').forEach(function(m){d.mats.push([m.querySelector('.m-d').value,m.querySelector('.m-q').value,m.querySelector('.m-u').value,m.querySelector('.m-s').value,m.querySelector('.m-a').value])});
+  document.querySelectorAll('.seg').forEach(function(s){d.segs.push([s.querySelector('.s-job').value,s.querySelector('.s-site').value,s.querySelector('.s-from').value,s.querySelector('.s-to').value,s.querySelector('.s-h').value,s.querySelector('.s-m').value])});
   try{localStorage.setItem('fieldforms',JSON.stringify(d))}catch(e){}
 }
 function load(){
   var d;try{d=JSON.parse(localStorage.getItem('fieldforms'))}catch(e){}
-  if(!d){addMat();return}
+  if(!d){addMat();addSeg();addSeg();return}
   FIELDS.forEach(function(f){if(d.v&&d.v[f]!=null)$(f).value=d.v[f]});
   S=d.yn||{};
   var map={q1:0,q2:1,q3:2};
@@ -207,8 +285,9 @@ function load(){
     if(box&&S[k]){(S[k]=='YES'?box.children[0]:box.children[1]).className='on'}
   });
   (d.mats&&d.mats.length?d.mats:[null]).forEach(function(m){m?addMat(m[0],m[1],m[2],m[3],m[4]):addMat()});
-  ['sig1','sig2'].forEach(function(id){if(d[id]){var img=new Image();img.onload=function(){var c=$(id);c.getContext('2d').drawImage(img,0,0,c.clientWidth,c.clientHeight);c.dataset.ink='1'};img.src=d[id]}});
-  calc();
+  (d.segs&&d.segs.length?d.segs:[null,null]).forEach(function(s){s?addSeg(s[0],s[1],s[2],s[3],s[4],s[5]):addSeg()});
+  ['sig1','sig2','sig3'].forEach(function(id){if(d[id]){var img=new Image();img.onload=function(){var c=$(id);c.getContext('2d').drawImage(img,0,0,c.clientWidth,c.clientHeight);c.dataset.ink='1'};img.src=d[id]}});
+  calc();calcSeg();
 }
 
 /* ---------- validation ---------- */
@@ -222,7 +301,7 @@ function missing(which){
     if(!S.q1||!S.q2||!S.q3)m.push('all three YES / NO questions');
     if(!$('f1cust').value.trim())m.push('Customer Name');
     if(!$('sig1').dataset.ink)m.push('Customer Signature');
-  }else{
+  }else if(which==2){
     if(!$('f2date').value)m.push('Date');
     if(!$('f2wo').value.trim())m.push('Work Order #');
     if(!$('f2tech').value.trim())m.push('Technician Name');
@@ -231,6 +310,17 @@ function missing(which){
     if(!any)m.push('at least one material line');
     if(!$('f2reason').value.trim())m.push('Reason Materials Are Needed');
     if(!$('sig2').dataset.ink)m.push('Technician Signature');
+  }else{
+    if(!$('f3date').value)m.push('Date');
+    if(!$('f3tech').value.trim())m.push('Technician Name');
+    var full=false,partial=false;
+    document.querySelectorAll('.seg').forEach(function(s){
+      var f=s.querySelector('.s-from').value.trim(),t=s.querySelector('.s-to').value.trim(),mins=segMins(s);
+      if(f&&t&&mins)full=true;else if(f||t||mins)partial=true;
+    });
+    if(!full)m.push('at least one segment with a leaving-from address, a destination, and a drive time');
+    else if(partial)m.push('the missing address or drive time on a started segment (remove it if it is not needed)');
+    if(!$('sig3').dataset.ink)m.push('Technician Signature');
   }
   return m;
 }
@@ -238,12 +328,12 @@ function missing(which){
 /* ---------- render to image ---------- */
 function W(x,txt,mx,my,mw,lh){var words=(txt||'').split(/\s+/),line='',y=my;for(var n=0;n<words.length;n++){var t=line+words[n]+' ';if(x.measureText(t).width>mw&&line){x.fillText(line,mx,y);line=words[n]+' ';y+=lh}else line=t}x.fillText(line,mx,y);return y+lh}
 function render(which){
-  var c=document.createElement('canvas'),w=1240,pad=60;c.width=w;c.height=2600;var x=c.getContext('2d');
-  x.fillStyle='#fff';x.fillRect(0,0,w,2600);
+  var c=document.createElement('canvas'),w=1240,pad=60;c.width=w;c.height=3400;var x=c.getContext('2d');
+  x.fillStyle='#fff';x.fillRect(0,0,w,3400);
   x.fillStyle='#000';x.fillRect(0,0,w,120);
   x.fillStyle='#c9a227';x.fillRect(0,120,w,8);
   x.fillStyle='#c9a227';x.font='bold 32px Arial';
-  x.fillText(which==1?'SERVICE COMPLETION & JOB SATISFACTION':'MATERIAL REQUEST & PURCHASE FORM',pad,58);
+  x.fillText(which==1?'SERVICE COMPLETION & JOB SATISFACTION':(which==2?'MATERIAL REQUEST & PURCHASE FORM':'TECHNICIAN DRIVE TIME LOG'),pad,58);
   x.fillStyle='#fff';x.font='18px Arial';x.fillText($('defco').value||'',pad,96);
   var y=190;
   function lbl(l,v){x.fillStyle='#666';x.font='bold 17px Arial';x.fillText(l.toUpperCase(),pad,y);x.fillStyle='#000';x.font='22px Arial';y=W(x,v||'--',pad,y+32,w-pad*2,30);y+=6;x.strokeStyle='#e2e2e2';x.beginPath();x.moveTo(pad,y);x.lineTo(w-pad,y);x.stroke();y+=32}
@@ -266,7 +356,7 @@ function render(which){
     });
     y+=10;head('CUSTOMER ACKNOWLEDGMENT');
     sig('sig1','CUSTOMER SIGNATURE',$('f1cust').value);
-  }else{
+  }else if(which==2){
     lbl('Date',$('f2date').value);lbl('Work Order #',$('f2wo').value);lbl('Technician',$('f2tech').value);
     lbl('Client / Location',$('f2client').value);lbl('Field Director',$('f2fd').value);lbl('Phone / Email',$('f2contact').value);
     head('MATERIAL REQUEST DETAILS');
@@ -290,6 +380,30 @@ function render(which){
     sig('sig2','TECHNICIAN SIGNATURE',$('f2tech').value);
     x.fillStyle='#000';x.font='20px Arial';x.fillText('Receipt attached: '+(S.rc||'--'),pad,y);y+=32;
     x.fillStyle='#666';x.font='18px Arial';x.fillText('Field Director / HR approval pending supervisor review.',pad,y);y+=32;
+  }else{
+    lbl('Date',$('f3date').value);lbl('Technician',$('f3tech').value);
+    head('TRAVEL SEGMENTS');
+    var n=0,elig=0;
+    document.querySelectorAll('.seg').forEach(function(s){
+      var from=s.querySelector('.s-from').value.trim(),to=s.querySelector('.s-to').value.trim(),t=segMins(s);
+      if(!from&&!to&&!t)return;
+      n++;
+      x.fillStyle='#000';x.font='bold 21px Arial';
+      x.fillText('SEGMENT '+n+'     JOB # '+(s.querySelector('.s-job').value.trim()||'--')+'     '+s.querySelector('.s-site').value.trim(),pad,y);y+=32;
+      x.fillStyle='#333';x.font='19px Arial';
+      y=W(x,'Leaving from: '+(from||'--'),pad,y,w-pad*2,25);
+      y=W(x,'Destination: '+(to||'--'),pad,y,w-pad*2,25);y+=4;
+      x.fillStyle='#000';x.font='bold 20px Arial';x.fillText('Drive time: '+hm(t),pad,y);
+      if(t>60){elig+=t;x.fillStyle='#1d6b3a';x.fillText('ELIGIBLE - over 1 hour',660,y)}
+      else{x.fillStyle='#8a4a20';x.fillText('NOT ELIGIBLE - 1 hour or less',660,y)}
+      y+=16;x.strokeStyle='#e2e2e2';x.beginPath();x.moveTo(pad,y);x.lineTo(w-pad,y);x.stroke();y+=38;
+    });
+    y+=8;x.fillStyle='#000';x.font='bold 26px Arial';
+    x.fillText('TOTAL ELIGIBLE DRIVE TIME',pad,y);x.fillText(hm(elig),820,y);y+=54;
+    head('TECHNICIAN CERTIFICATION');
+    sig('sig3','TECHNICIAN SIGNATURE',$('f3tech').value);
+    x.fillStyle='#555';x.font='15px Arial';
+    y=W(x,'DRIVE TIME POLICY: This form must be completed in full and submitted for drive-time compensation consideration. Drive-time pay applies only to travel segments that exceed one (1) hour from the technician\'s departure location, whether departing from home or a previous job site, to the next qualifying job site. Incomplete, inaccurate, or missing forms may result in drive-time compensation not being approved for the applicable travel segment.',pad,y,w-pad*2,21);y+=24;
   }
   y+=24;x.fillStyle='#000';x.fillRect(0,y,w,62);
   x.fillStyle='#c9a227';x.font='bold 20px Arial';x.fillText('One Aim ~ One Fix ~ One Solution',pad,y+40);
@@ -300,7 +414,12 @@ function render(which){
 
 /* ---------- send ---------- */
 function todayStr(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+function firstVal(sel){var v='';document.querySelectorAll(sel).forEach(function(i){if(!v&&i.value.trim())v=i.value.trim()});return v}
 function title(which){
+  if(which==3){
+    var job=firstVal('.s-job'),site=firstVal('.s-site');
+    return 'Drive Time Log'+(job?' - WO '+job:'')+(site?' - '+site:'')+' - '+($('f3date').value||todayStr());
+  }
   var t=which==1?'Service Completion':'Material Request';
   var wo=(which==1?$('f1wo').value:$('f2wo').value).trim();
   var who=which==1?(($('f1loc').value+' '+$('f1num').value).trim()||$('f1cust').value):$('f2client').value;
@@ -350,32 +469,39 @@ function finish(which,mode){
   });
 }
 function reset(which){
-  if(!confirm('Clear this form and start the next job?'))return;
+  if(!confirm(which==3?'Clear this log and start the next day?':'Clear this form and start the next job?'))return;
   $('h'+which).style.display='none';
   var today=todayStr();
   if(which==1){['f1wo','f1loc','f1num','f1desc','q1n','q2n','q3n','f1cust'].forEach(function(f){$(f).value=''});
     S.q1=S.q2=S.q3=null;document.querySelectorAll('#p1 .yn button').forEach(function(b){b.className=''});clearSig('sig1');
     $('f1date').value=today;$('f1tech').value=$('deftech').value;$('e1').style.display='none';}
-  else{['f2wo','f2client','f2reason'].forEach(function(f){$(f).value=''});
+  else if(which==2){['f2wo','f2client','f2reason'].forEach(function(f){$(f).value=''});
     document.querySelectorAll('.mat').forEach(function(m){m.parentNode.removeChild(m)});addMat();
     S.rc=null;document.querySelectorAll('#p2 .yn button').forEach(function(b){b.className=''});clearSig('sig2');
     $('f2date').value=today;$('f2tech').value=$('deftech').value;$('e2').style.display='none';}
-  save();toast('Ready for the next job');window.scrollTo(0,0);
+  else{document.querySelectorAll('.seg').forEach(function(s){s.parentNode.removeChild(s)});addSeg();addSeg();
+    clearSig('sig3');
+    $('f3date').value=today;$('f3tech').value=$('deftech').value;$('e3').style.display='none';}
+  save();toast(which==3?'Ready for the next day':'Ready for the next job');window.scrollTo(0,0);
 }
 function prefill(){
-  if($('deftech').value){if(!$('f1tech').value)$('f1tech').value=$('deftech').value;if(!$('f2tech').value)$('f2tech').value=$('deftech').value}
+  if($('deftech').value){
+    if(!$('f1tech').value)$('f1tech').value=$('deftech').value;
+    if(!$('f2tech').value)$('f2tech').value=$('deftech').value;
+    if(!$('f3tech').value)$('f3tech').value=$('deftech').value;
+  }
   if($('deffd').value&&!$('f2fd').value)$('f2fd').value=$('deffd').value;
   if($('defcontact').value&&!$('f2contact').value)$('f2contact').value=$('defcontact').value;
 }
 function saveSetup(){save();prefill();toast('Setup saved')}
 
 /* ---------- boot ---------- */
-pad('sig1');pad('sig2');load();
+pad('sig1');pad('sig2');pad('sig3');load();
 document.addEventListener('input',function(e){if(e.target&&e.target.tagName)save()});
 var today=todayStr();
-if(!$('f1date').value||$('f1date').value<today)$('f1date').value=today;
-if(!$('f2date').value||$('f2date').value<today)$('f2date').value=today;
+['f1date','f2date','f3date'].forEach(function(f){if(!$(f).value||$(f).value<today)$(f).value=today});
 prefill();
+tab($('deftech').value.trim()?'p1':'pset');
 </script>
 
 
