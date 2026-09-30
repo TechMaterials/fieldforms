@@ -42,6 +42,7 @@ canvas.sig{width:100%;height:190px;background:#fff;border-radius:8px;border:1px 
 .big{width:100%;padding:16px;border:0;border-radius:10px;background:#c9a227;color:#000;font-weight:800;font-size:17px;margin-top:22px;letter-spacing:.5px}
 .ghost{background:#1e1e1e;color:#c9a227;border:1px solid #c9a227}
 .tot{margin-top:14px;padding:12px;background:#1b1b1b;border-radius:8px;display:flex;justify-content:space-between;font-weight:800}
+.tot.sub{margin-top:8px;padding:10px 12px;background:#171717;font-weight:600;color:#bbb}
 .note{font-size:12px;color:#777;line-height:1.5;margin-top:10px}
 .ack{font-size:12px;color:#aaa;line-height:1.5;background:#181818;padding:12px;border-radius:8px;margin-top:8px}
 .err{display:none;background:#b3261e;color:#fff;padding:12px 14px;border-radius:8px;font-size:15px;line-height:1.4;margin-bottom:4px;font-weight:600}
@@ -133,6 +134,8 @@ footer{padding:24px 16px 50px;text-align:center;color:#555;font-size:12px}
   <label>Material Request Details</label>
   <div id="mats"></div>
   <button class="big ghost" style="margin-top:10px" onclick="addMat()">+ Add Material</button>
+  <div class="tot sub"><span>SUBTOTAL</span><span id="sub">$0.00</span></div>
+  <div class="tot sub"><span>SALES TAX (8.25%)</span><span id="tax">$0.00</span></div>
   <div class="tot"><span>GRAND TOTAL</span><span id="grand">$0.00</span></div>
 
   <label>Reason Materials Are Needed</label><textarea id="f2reason"></textarea>
@@ -188,6 +191,7 @@ footer{padding:24px 16px 50px;text-align:center;color:#555;font-size:12px}
 
 <script>
 var S={};
+var TAX_RATE=0.0825;
 var PANELS=['p1','p2','p3','pset'];
 function $(i){return document.getElementById(i)}
 function tab(id){
@@ -205,15 +209,24 @@ function yn(btn,key,val){S[key]=val;var p=btn.parentNode.children;for(var i=0;i<
 /* ---------- signature pads ---------- */
 function pad(id){
   var c=$(id),x=c.getContext('2d'),draw=false,r=window.devicePixelRatio||1;
-  function size(){var w=c.clientWidth,h=c.clientHeight;c.width=w*r;c.height=h*r;x.setTransform(1,0,0,1,0,0);x.scale(r,r);x.lineWidth=2.5;x.lineCap='round';x.lineJoin='round';x.strokeStyle='#111';x.fillStyle='#fff';x.fillRect(0,0,w,h);c.dataset.ink=''}
-  size();window.addEventListener('resize',function(){var d=c.dataset.ink;size();c.dataset.ink=d});
+  var lw=0,lh=0;
+  function paint(w,h){c.width=w*r;c.height=h*r;x.setTransform(1,0,0,1,0,0);x.scale(r,r);x.lineWidth=2.5;x.lineCap='round';x.lineJoin='round';x.strokeStyle='#111';x.fillStyle='#fff';x.fillRect(0,0,w,h);lw=w;lh=h}
+  function wipe(){paint(c.clientWidth,c.clientHeight);c.dataset.ink=''}
+  function refit(){
+    var w=c.clientWidth,h=c.clientHeight;
+    if(w===lw&&h===lh)return;
+    var snap=c.dataset.ink?c.toDataURL():'';
+    paint(w,h);
+    if(snap){var img=new Image();img.onload=function(){x.drawImage(img,0,0,w,h)};img.src=snap;c.dataset.ink='1'}else c.dataset.ink='';
+  }
+  wipe();window.addEventListener('resize',refit);
   function pt(e){var b=c.getBoundingClientRect(),t=e.touches?e.touches[0]:e;return[t.clientX-b.left,t.clientY-b.top]}
   function down(e){e.preventDefault();draw=true;var p=pt(e);x.beginPath();x.moveTo(p[0],p[1])}
   function move(e){if(!draw)return;e.preventDefault();var p=pt(e);x.lineTo(p[0],p[1]);x.stroke();c.dataset.ink='1'}
   function up(){if(draw){draw=false;save()}}
   c.addEventListener('mousedown',down);c.addEventListener('mousemove',move);window.addEventListener('mouseup',up);
   c.addEventListener('touchstart',down,{passive:false});c.addEventListener('touchmove',move,{passive:false});c.addEventListener('touchend',up);
-  c.__clear=size;
+  c.__clear=wipe;
 }
 function clearSig(id){$(id).__clear();save()}
 
@@ -235,7 +248,10 @@ function calc(){
     var q=parseFloat(m.querySelector('.m-q').value)||0,u=parseFloat(m.querySelector('.m-u').value)||0,t=q*u;
     m.querySelector('.m-t').value=t?'$'+t.toFixed(2):'';g+=t;
   });
-  $('grand').textContent='$'+g.toFixed(2);save();
+  var tax=Math.round(g*TAX_RATE*100)/100,tot=g+tax;
+  $('sub').textContent='$'+g.toFixed(2);
+  $('tax').textContent='$'+tax.toFixed(2);
+  $('grand').textContent='$'+tot.toFixed(2);save();
 }
 
 /* ---------- drive time segments ---------- */
@@ -372,7 +388,10 @@ function render(which){
       x.font='15px Arial';x.fillText(((m.querySelector('.m-s').value||'')+' / '+m.querySelector('.m-a').value).substring(0,26),1020,y);
       y+=14;x.strokeStyle='#eee';x.beginPath();x.moveTo(pad,y);x.lineTo(w-pad,y);x.stroke();y+=28;
     });
-    y+=10;x.fillStyle='#000';x.font='bold 26px Arial';x.fillText('GRAND TOTAL',pad,y);x.fillText($('grand').textContent,900,y);y+=54;
+    y+=10;x.fillStyle='#000';x.font='bold 20px Arial';
+    x.fillText('SUBTOTAL',pad,y);x.fillText($('sub').textContent,900,y);y+=30;
+    x.fillText('SALES TAX (8.25%)',pad,y);x.fillText($('tax').textContent,900,y);y+=36;
+    x.font='bold 26px Arial';x.fillText('GRAND TOTAL',pad,y);x.fillText($('grand').textContent,900,y);y+=54;
     lbl('Reason Materials Are Needed',$('f2reason').value);
     x.fillStyle='#555';x.font='15px Arial';
     y=W(x,'I certify that the materials listed above are required to complete the assigned work order. Materials must receive prior approval before purchase. Itemized receipts must be submitted within 24 hours of purchase.',pad,y,w-pad*2,21);y+=24;
